@@ -1,0 +1,17 @@
+requests
+python-dateutil
+python-dotenv
+BeautifulSoup4
+lh3api
+XlsxWriter
+pandas
+numpy
+ipdb
+pendulum
+
+Jinja2
+#pdf
+#word
+
+#dev  mode
+black

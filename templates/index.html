@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <!-- Required meta tags -->
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+      <title>Transcript!</title>
+      <style>
+         h2{
+           padding: 30px 0;
+         }
+         ul li{
+         display: inline;
+         }
+         li + li::before {
+         content: " | ";
+         padding-left: 10px;
+         }
+         .scroll {
+         color: #fff;
+         margin-top: 100px
+         }
+         #toTopBtn {
+         position: fixed;
+         bottom: 26px;
+         right: 39px;
+         z-index: 98;
+         padding: 21px;
+         background-color: rgba(84, 123, 232, 0.8)
+         }
+         .js .cd-top--fade-out {
+         opacity: .5
+         }
+         .js .cd-top--is-visible {
+         visibility: visible;
+         opacity: 1
+         }
+         .js .cd-top {
+         visibility: hidden;
+         opacity: 0;
+         transition: opacity .3s, visibility .3s, background-color .3s
+         }
+         .cd-top {
+         position: fixed;
+         bottom: 20px;
+         bottom: var(--cd-back-to-top-margin);
+         right: 20px;
+         right: var(--cd-back-to-top-margin);
+         display: inline-block;
+         height: 40px;
+         height: var(--cd-back-to-top-size);
+         width: 40px;
+         width: var(--cd-back-to-top-size);
+         box-shadow: 0 0 10px rgba(0, 0, 0, .05) !important;
+         background: url(https://res.cloudinary.com/dxfq3iotg/image/upload/v1571057658/cd-top-arrow.svg) no-repeat center 50%;
+         background-color: rgba(84, 123, 232, 0.8);
+         background-color: hsla(var(--cd-color-3-h), var(--cd-color-3-s), var(--cd-color-3-l), 0.8)
+         }
+      </style>
+   </head>
+   <body>
+
+
+
+
+      <a href="#" id="toTopBtn" class="cd-top text-replace js-cd-top cd-top--is-visible cd-top--fade-out" data-abc="true"></a>
+      <div class="container">
+         {{ transcript|safe  }}
+      </div>
+
+
+
+      <!-- Optional JavaScript -->
+      <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+      <script>
+        $(document).ready(function() {
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > 50) {
+                    $('#toTopBtn').fadeIn();
+                } else {
+                    $('#toTopBtn').fadeOut();
+                }
+            });
+
+            $('#toTopBtn').click(function() {
+                $("html, body").animate({
+                    scrollTop: 0
+                }, 2000);
+                return false;
+            });
+        });
+                  
+        </script>
+   </body>
+</html>
