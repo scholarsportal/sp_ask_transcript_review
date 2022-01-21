@@ -117,7 +117,9 @@ lh3/
 .secrets
 
 templates/ask.html
+templates/chat*
 /templates/ask.html
+/templates/chat*
 
 main.py
 *.xlsx

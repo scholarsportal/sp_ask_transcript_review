@@ -9,6 +9,8 @@ import pendulum
 from jinja2 import Environment, FileSystemLoader
 import os
 import datetime
+import logging
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 root = os.path.dirname(os.path.abspath(__file__))
 templates_dir = os.path.join(root, "templates")
@@ -70,6 +72,8 @@ def get_transcript(chat_id):
     transcript = retrieve_transcript(transcript_metadata, chat_id)
     queue_name = transcript_metadata.get("queue").get("name")
     started_date = parse(transcript_metadata.get("started")).strftime("%Y-%m-%d")
+    logging.info("Retrieve transcript for {}".format(str(chat_id)))
+    print("Retrieve transcript for {}".format(str(chat_id)))
     return transcript
 
 
@@ -87,6 +91,7 @@ def get_wait_and_duration(this_chat, started):
     ended = None
     accepted = None
     wait = None
+    duration = None
     try:
         ended = pendulum.parse(this_chat.get("ended"))
     except:
@@ -119,6 +124,14 @@ def get_chat_metadata_for_header(transcript, duration, wait):
         string: returning HTML
     """
     
+    try:
+        duration_in_second = str(datetime.timedelta(0, duration.seconds))
+    except:
+        duration_in_second = 0
+    try:
+        wait_in_second = str(datetime.timedelta(0, wait.seconds))
+    except:
+        wait_in_second = 0
     metadata_html = """
             <div class="container" style="float: right;overflow:hidden;">
             <ul style="overflow:hidden;">
@@ -128,9 +141,9 @@ def get_chat_metadata_for_header(transcript, duration, wait):
             </ul>
         </div>
     """.format(
-        str(datetime.timedelta(0, duration.seconds))
+        duration_in_second
         ,
-        str(datetime.timedelta(0, wait.seconds))
+        wait_in_second
         ,
         transcript[0].get("chat_standalone_url"),
         transcript[0].get("chat_standalone_url"),
@@ -181,6 +194,7 @@ def line_by_line(transcript, previous_timestamp,  operator, html_template, this_
         line_to_add = line_to_add.replace(
             this_queue, "system@chat.ca.libraryh3lp.com", 1
         )
+        logging.info("Adding a line")
         html_template.append("<tr><td>" + line_to_add + "</td></tr>")
     return html_template
 
@@ -198,36 +212,42 @@ def generate_html_template_from_transcript(chat_ids):
     counter = 1
 
     for chat in chat_ids[0::]:
-        client = Client()
-        this_chat = client.one("chats", chat).get()
-        operator = this_chat.get("operator").get("name")
-        this_queue = this_chat.get("queue").get("name") + "@chat.ca.libraryh3lp.com"
-        started = pendulum.parse(this_chat.get("started"))
-        previous_timestamp = None
+        try:
+            client = Client()
+            this_chat = client.one("chats", chat).get()
+            try:
+                operator = this_chat.get("operator").get("name")
+            except:
+                operator = "None"
+            this_queue = this_chat.get("queue").get("name") + "@chat.ca.libraryh3lp.com"
+            started = pendulum.parse(this_chat.get("started"))
+            previous_timestamp = None
 
-        wait, duration = get_wait_and_duration(this_chat, started)
-        
+            wait, duration = get_wait_and_duration(this_chat, started)
+            
 
-        divider = """<div style="background-color: rgb(209, 241, 231); padding:20px 0px; margin:50px 0"></div>"""
-        row_bg_and_h2 = """<div class='row bg-light '><h2 class="text-center"> Chat #"""
-        if (counter % 2) == 0:
-            row_bg_and_h2 = """<div class='row bg-light-blue'><h2 class="text-center"> Chat #"""
-        transcript = get_transcript(chat)
-        metadata_html = get_chat_metadata_for_header(transcript, duration, wait)
+            divider = """<div style="background-color: rgb(209, 241, 231); padding:20px 0px; margin:50px 0"></div>"""
+            row_bg_and_h2 = """<div class='row bg-light '><h2 class="text-center"> Chat #"""
+            if (counter % 2) == 0:
+                row_bg_and_h2 = """<div class='row bg-light-blue'><h2 class="text-center"> Chat #"""
+            transcript = get_transcript(chat)
+            metadata_html = get_chat_metadata_for_header(transcript, duration, wait)
 
-        html_template.append(
-            row_bg_and_h2
-            + str(counter)
-            + "</h2>"
-            + metadata_html
-            + '<div class="table-responsive">'
-            + '<table class="table mb-0 table-hover">'
-        )
-        html_template = line_by_line(transcript, previous_timestamp, operator, html_template, this_queue)
+            html_template.append(
+                row_bg_and_h2
+                + str(counter)
+                + "</h2>"
+                + metadata_html
+                + '<div class="table-responsive">'
+                + '<table class="table mb-0 table-hover">'
+            )
+            html_template = line_by_line(transcript, previous_timestamp, operator, html_template, this_queue)
 
-        html_template.append("</table></div></div>" + divider)
-        # add HTML table for Metadata (or prepend)
-        counter += 1
+            html_template.append("</table></div></div>" + divider)
+            # add HTML table for Metadata (or prepend)
+            counter += 1
+        except:
+            pass
     html = "".join(html_template)
     output = template.render(transcript=html)
     return output
