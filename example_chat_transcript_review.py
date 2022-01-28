@@ -11,6 +11,7 @@ if __name__ == '__main__':
     df = df[0:500]
     sections = [0, 60, 120, 180, 240, 300, 360, 420, 480, 500]
     counter = 0
+    """
     for number in sections:
         logging.info("Starting to retrieve chat from {}-{}".format(str(sections[counter]+1), str(sections[counter+1]-1)))
         print("Starting to retrive chat from {}-{}".format(str(sections[counter]+1), str(sections[counter+1]-1)))
@@ -19,4 +20,15 @@ if __name__ == '__main__':
             filePath = "./templates/chat-{0}-{1}.html".format(str(sections[counter]+1), str(sections[counter+1]-1))
             write_html_to_template(output, filePath)
         counter +=1
+        time.sleep(5)
+    """
+    while counter <= 500:
+        chat_per_page = 60
+        total_chat_so_far_on_that_page = 1
+        while total_chat_so_far_on_that_page <= 60:
+            output = generate_html_template_from_transcript(df.id[sections[counter]:sections[counter+1]])
+            filePath = "./templates/chat-{0}-{1}.html".format(str(sections[counter]+1), str(sections[counter+1]-1))
+            write_html_to_template(output, filePath)
+            counter +=1
+            total_chat_so_far_on_that_page += 1
         time.sleep(5)

@@ -10,12 +10,33 @@ from jinja2 import Environment, FileSystemLoader
 import os
 import datetime
 import logging
+from uuid import uuid4
+import pandas as pd
+
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 root = os.path.dirname(os.path.abspath(__file__))
 templates_dir = os.path.join(root, "templates")
 env = Environment(loader=FileSystemLoader(templates_dir))
 template = env.get_template("index.html")
+
+
+def write_html_to_template(output, filePath):
+    """create an HTML file using the default HTML template
+
+    Args:
+        output ([string]):  HTML content
+    """
+    # if file exist
+    
+    if os.path.exists(filePath):
+        os.remove(filePath)
+        with open(filePath, "w", encoding="utf-8") as file:
+            file.write(str(output))
+    else:
+        with open(filePath, "w", encoding="utf-8") as file:
+            file.write(str(output))
+
 
 
 def retrieve_transcript(transcript_metadata, chat_id):
@@ -199,7 +220,7 @@ def line_by_line(transcript, previous_timestamp,  operator, html_template, this_
     return html_template
 
 
-def generate_html_template_from_transcript(chat_ids):
+def generate_html_template_from_transcript(chat_ids, filePath, chat_per_page):
     """This is the main function of the script. 
 
     Args:
@@ -210,6 +231,8 @@ def generate_html_template_from_transcript(chat_ids):
     """
     html_template = []
     counter = 1
+    total_chat_so_far_on_this_page = 0
+    tracking_guest_id = []
 
     for chat in chat_ids[0::]:
         try:
@@ -219,11 +242,17 @@ def generate_html_template_from_transcript(chat_ids):
                 operator = this_chat.get("operator").get("name")
             except:
                 operator = "None"
+            guest_id = this_chat.get('guest').get('jid')
+            chat_id = this_chat.get('guest').get('id')
+            
+            tracking_guest_id.append({"guestID":guest_id, "chat_id":chat_id })
+
             this_queue = this_chat.get("queue").get("name") + "@chat.ca.libraryh3lp.com"
             started = pendulum.parse(this_chat.get("started"))
-            previous_timestamp = None
+            
 
             wait, duration = get_wait_and_duration(this_chat, started)
+            previous_timestamp = None
             
 
             divider = """<div style="background-color: rgb(209, 241, 231); padding:20px 0px; margin:50px 0"></div>"""
@@ -246,34 +275,35 @@ def generate_html_template_from_transcript(chat_ids):
             html_template.append("</table></div></div>" + divider)
             # add HTML table for Metadata (or prepend)
             counter += 1
+
+            if counter == chat_per_page+1:
+                html = "".join(html_template)
+                output = template.render(transcript=html)
+                random_string = str(uuid4())[0:3]
+                filename = filePath + "-" + random_string 
+                print("printint a file: {0}".format(filename))
+                write_html_to_template(output, filename+".html")
+                df = pd.DataFrame(tracking_guest_id)
+                df.to_excel(filename+".xlsx")
+                print("printint a file: {0}".format(filename+".xlsx"))
+                
+                html_template = []
+                tracking_guest_id = []
+                counter = 1
         except:
             pass
-    html = "".join(html_template)
-    output = template.render(transcript=html)
-    return output
 
 
-def write_html_to_template(output, filePath):
-    """create an HTML file using the default HTML template
 
-    Args:
-        output ([string]):  HTML content
-    """
-    # if file exist
-    
-    if os.path.exists(filePath):
-        os.remove(filePath)
-        with open(filePath, "w", encoding="utf-8") as file:
-            file.write(str(output))
-    else:
-        with open(filePath, "w", encoding="utf-8") as file:
-            file.write(str(output))
+
 
 
 if __name__ == '__main__':
     chat_ids = [2624301, 2666584, 2956045, 2544399]
-    output = generate_html_template_from_transcript(chat_ids)
-    filePath = "./templates/ask.html"
-    write_html_to_template(output, filePath)
+    filePath = "./output/ask"
+    chat_per_page = 2
+    generate_html_template_from_transcript(chat_ids, filePath, chat_per_page)
+    
+    
     
 
