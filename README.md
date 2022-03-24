@@ -16,6 +16,7 @@ Sp Ask Transcript Downloader
     <li>- 12:41PM **operator**@ca.libraryh3lp.com/yuxzl4a9vd69fj still looking</li>
     <li>- removing school name from Scholars portal' Ask Transcript and replacing it by **system**</li>
     <li>- 12:56PM **system**@chat.ca.libraryh3lp.com System message: guest navigated away from chat</li>
+  <li>Creating files containing 60 chats each</li>
 </ul>
 
 <h3>Operating System</h3>
